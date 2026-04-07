@@ -1,0 +1,27 @@
+#ifndef PPG_SENSOR_H
+#define  PPG_SENSOR_H
+
+#include <Arduino.h>
+
+/* Pin definitions */
+#define   SPO2_IR_MIN_PIN    22 // was 15 (changed to enable debugging)
+#define   SPO2_RED_MIN_PIN   16
+//Sementara ditukar
+
+#define   SPO2_IR_MIN_PIN2    21
+#define   SPO2_RED_MIN_PIN2   35
+
+///////////////////////////////////////////////////////////////////////////
+/// PROTOTYPES ////
+///////////////////////////////////////////////////////////////////////////
+void SPO2_setup_pins(void);
+void set_ch2_non_spo2_measurement(void);
+void set_ppg_on(void);
+void toggle_spo2_source_ch(int8_t ix);
+
+
+
+#endif
+///////////////////////////////////////////////////////////////////////////
+/// END ////
+///////////////////////////////////////////////////////////////////////////
