@@ -805,7 +805,7 @@ void processTBI(uint8_t temp_ch[]) {
 
     adc_read = samples[ix];
     ix++; 
-
+    /*
     if (ix >= 32) {        
         ix = 0;
         count_hold++;
@@ -813,7 +813,31 @@ void processTBI(uint8_t temp_ch[]) {
             Serial.write((uint8_t *)samples, 128);
             count_hold = 2;
         }
-    }   
+    }
+    */
+   
+        // Jika buffer sudah terisi 32 nilai (128 byte)
+    if (ix >= 32) {
+        ix = 0;
+        count_hold++;
+        if (count_hold >= 2) {
+            // Buat framing dengan header dan footer
+            uint8_t header[] = {0xAA, 0x55};  // misalnya: header = AA55
+            uint8_t footer[] = {0x55, 0xAA};  // footer = 55AA
+            const int dataLength = 32 * sizeof(int32_t);  // 32 nilai, masing-masing 4 byte (128 byte total)
+            uint8_t packet[2 + dataLength + 2];  // total 132 byte
+            
+            // Salin header
+            memcpy(packet, header, 2);
+            // Salin data sensor (buffer samples)
+            memcpy(packet + 2, samples, dataLength);
+            // Salin footer
+            memcpy(packet + 2 + dataLength, footer, 2);
+            
+            Serial.write(packet, sizeof(packet));  // Kirim paket melalui serial USB
+            count_hold = 2;  // Reset count_hold agar pengiriman terjadi secara periodik
+        }
+    }
 }
 
 /* =================================================================================================================== */
@@ -967,13 +991,13 @@ void loop()
             {
                 // Pembuangan Udara
                 if (millis() - starts <= 2000) {                
-                    processNiva(source_ch_BP);
+                    processNiva_encrypt(source_ch_BP);
                     deflation();
                 }
 
                 // Sequence: BP Measurement
                 else if (millis() - starts > 2000 && !release) {                
-                    processNiva(source_ch_BP);
+                    processNiva_encrypt(source_ch_BP);
                     SeqPress(BP_threshold);
                 }
 
@@ -981,7 +1005,7 @@ void loop()
                 else if (release || millis() - starts > 320000 && millis() - starts <= 330001) {          
                     if(millis() - starts >= 330000) startStop(false);
                     else{
-                        processNiva(source_ch_BP);
+                        processNiva_encrypt(source_ch_BP);
                         deflation();
                     }
                 }
@@ -992,18 +1016,18 @@ void loop()
             {
                 // Pembuangan Udara
                 if (millis() - starts <= 2000) {                
-                    processNiva(source_ch_BP);
+                    processNiva_encrypt(source_ch_BP);
                     deflation();
                 }
                 // Sequence: BP Measurement
                 else if (millis() - starts > 2000 && !release) {                
-                    processNiva(source_ch_BP);
+                    processNiva_encrypt(source_ch_BP);
                     SeqPress(BP_threshold);
                 }
 
                 // Pembuangan Udara
                 else if (millis() - starts > 47000 && release || millis() - starts > 320000 && millis() - starts <= 330001) {  
-                        processNiva(source_ch_BP);
+                        processNiva_encrypt(source_ch_BP);
                         deflation();
                         if(timeRelease == 0) timeRelease = millis();
                         else if (millis() - timeRelease >= 5000) startStop(false);                   
@@ -1048,7 +1072,7 @@ void loop()
             {
                 // Sequence: PPG Measurement
                 if (millis() - starts <= 30000) {            
-                    processNiva(source_ch_PPG);
+                    processNiva_encrypt(source_ch_PPG);
                     toggle_spo2_source_ch(ix);
                 }
 
@@ -1063,19 +1087,19 @@ void loop()
             {
                 // Pembuangan Udara
                 if (millis() - starts <= 2000) {                
-                    processNiva(source_ch_COMP);
+                    processNiva_encrypt(source_ch_COMP);
                     deflation();
                 }
 
                 // Sequence: Compliance Left Arm (Channel 1)
                 else if (millis() - starts > 2000 && millis() - starts <= 43000) {                
-                    processNiva(source_ch_COMP);
+                    processNiva_encrypt(source_ch_COMP);
                     SeqComp(COMP_THRESHOLD);
                 }
 
                 // Pembuangan Udara
                 else if (millis() - starts > 43000 && millis() - starts <= 45000) {              
-                    processNiva(source_ch_COMP);
+                    processNiva_encrypt(source_ch_COMP);
                     deflation();
                 }
 
@@ -1093,19 +1117,19 @@ void loop()
                 unsigned long c = 10;
                 // Pembuangan Udara
                 if (millis() - starts <= 2000) {                
-                    processNiva(source_ch_COMP);
+                    processNiva_encrypt(source_ch_COMP);
                     deflation();
                 }
 
                 // Sequence: Compliance Left Arm (Channel 1)
                 else if (millis() - starts > 2000 && millis() - starts <= a) {
-                    processNiva(source_ch_COMP);
+                    processNiva_encrypt(source_ch_COMP);
                     SeqComp(COMP_THRESHOLD_XL);
                 }
 
                 // Pembuangan Udara
                 else if (millis() - starts > a && millis() - starts <= b) {
-                    processNiva(source_ch_COMP);
+                    processNiva_encrypt(source_ch_COMP);
                     deflation();
                 }
 
